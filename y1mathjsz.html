@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>十位数近似值四人对战版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=ZCOOL+Happy&display=swap');
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8fafc;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        .game-font { font-family: 'ZCOOL Happy', cursive; }
+        
+        /* 四列布局 */
+        .columns-container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+        
+        .player-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid rgba(0,0,0,0.05);
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        .player-column:last-child { border-right: none; }
+
+        /* 顶部信息区 */
+        .col-header {
+            padding: 1.5rem 0.5rem;
+            text-align: center;
+        }
+
+        /* 题目显示区（垂直中心） */
+        .q-display-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+
+        .target-num {
+            font-size: 5rem;
+            font-weight: 900;
+            margin: 0;
+            line-height: 1;
+            text-shadow: 3px 3px 0px rgba(0,0,0,0.05);
+        }
+
+        /* 底部答案区 */
+        .answer-area {
+            padding: 1.5rem 0.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            width: 100%;
+            max-width: 220px;
+        }
+
+        .option-btn {
+            height: 70px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            border-radius: 16px;
+            background: white;
+            border: 2px solid transparent;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.1s, background-color 0.2s;
+            cursor: pointer;
+        }
+        .option-btn:active { transform: scale(0.9); }
+
+        /* 颜色主题 */
+        .p1-col { background-color: #eff6ff; color: #1e40af; } /* Blue */
+        .p2-col { background-color: #fff1f2; color: #9f1239; } /* Red */
+        .p3-col { background-color: #f0fdf4; color: #166534; } /* Green */
+        .p4-col { background-color: #fffbeb; color: #92400e; } /* Yellow */
+
+        /* 计时器条 */
+        .timer-container {
+            width: 80%;
+            height: 10px;
+            background: rgba(255,255,255,0.5);
+            border-radius: 5px;
+            margin: 10px auto;
+            overflow: hidden;
+        }
+        .timer-bar {
+            height: 100%;
+            width: 100%;
+            transition: width 1s linear;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: white; z-index: 1000;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            padding: 20px;
+        }
+
+        /* 针对手机端竖屏的提示 */
+        @media (max-height: 500px) {
+            .target-num { font-size: 3rem; }
+            .option-btn { height: 50px; font-size: 1.4rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 欢迎界面 -->
+    <div id="start-screen" class="overlay">
+        <h1 class="text-4xl font-bold text-indigo-600 mb-2 game-font">近似值垂直大对决</h1>
+        <p class="text-gray-500 mb-8">四人垂直列布局，谁能先答完？</p>
+        
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 w-full max-w-4xl">
+            <div class="p-4 rounded-2xl p1-col border-2 border-blue-100">
+                <input type="text" id="p1-input" placeholder="选手1" class="w-full p-2 rounded-lg bg-white/50 text-center font-bold border-none outline-none">
+            </div>
+            <div class="p-4 rounded-2xl p2-col border-2 border-red-100">
+                <input type="text" id="p2-input" placeholder="选手2" class="w-full p-2 rounded-lg bg-white/50 text-center font-bold border-none outline-none">
+            </div>
+            <div class="p-4 rounded-2xl p3-col border-2 border-green-100">
+                <input type="text" id="p3-input" placeholder="选手3" class="w-full p-2 rounded-lg bg-white/50 text-center font-bold border-none outline-none">
+            </div>
+            <div class="p-4 rounded-2xl p4-col border-2 border-yellow-100">
+                <input type="text" id="p4-input" placeholder="选手4" class="w-full p-2 rounded-lg bg-white/50 text-center font-bold border-none outline-none">
+            </div>
+        </div>
+
+        <button onclick="initGame()" class="bg-indigo-600 text-white px-20 py-5 rounded-full text-2xl font-bold hover:bg-indigo-700 shadow-xl active:scale-95 transition">
+            全员开火
+        </button>
+    </div>
+
+    <!-- 游戏战场 -->
+    <div id="game-screen" class="columns-container hidden">
+        <div id="col-0" class="player-column p1-col"></div>
+        <div id="col-1" class="player-column p2-col"></div>
+        <div id="col-2" class="player-column p3-col"></div>
+        <div id="col-3" class="player-column p4-col"></div>
+    </div>
+
+    <!-- 结果页 -->
+    <div id="result-screen" class="overlay hidden">
+        <h2 class="text-3xl font-bold mb-6 game-font text-indigo-600">最终战绩排行</h2>
+        <div id="final-results" class="w-full max-w-md space-y-3 mb-8"></div>
+        <button onclick="location.reload()" class="bg-indigo-600 text-white px-10 py-3 rounded-xl font-bold">重赛一局</button>
+    </div>
+
+    <script>
+        const TOTAL_QUESTIONS = 6;
+        const TIME_LIMIT = 10;
+        const MASTER_KEY = 'math_column_battle_v4';
+
+        let players = Array.from({ length: 4 }, (_, i) => ({
+            id: i,
+            name: '',
+            score: 0,
+            currentIdx: 0,
+            finished: false,
+            timer: null,
+            timeLeft: 10
+        }));
+
+        function initGame() {
+            players.forEach((p, i) => {
+                const val = document.getElementById(`p${i+1}-input`).value.trim();
+                p.name = val || `选手 ${i + 1}`;
+                
+                const col = document.getElementById(`col-${i}`);
+                col.innerHTML = `
+                    <div class="col-header">
+                        <div class="font-black text-xl truncate px-2">${p.name}</div>
+                        <div id="prog-${i}" class="text-xs font-bold opacity-60">1 / ${TOTAL_QUESTIONS}</div>
+                        <div class="timer-container">
+                            <div id="time-${i}" class="timer-bar ${getBarColor(i)}"></div>
+                        </div>
+                    </div>
+                    <div class="q-display-area">
+                        <div id="target-${i}" class="target-num">--</div>
+                    </div>
+                    <div class="answer-area">
+                        <div id="opts-${i}" class="options-grid"></div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            
+            players.forEach((_, i) => startQuestion(i));
+        }
+
+        function getBarColor(idx) {
+            return ['bg-blue-600', 'bg-red-600', 'bg-green-600', 'bg-yellow-600'][idx];
+        }
+
+        function generateQuestion() {
+            const num = Math.floor(Math.random() * 89) + 11;
+            const correct = Math.round(num / 10) * 10;
+            let distractors = new Set();
+            while(distractors.size < 3) {
+                let r = Math.floor(Math.random() * 9) * 10 + 10;
+                if (r !== correct) distractors.add(r);
+            }
+            const options = [correct, ...Array.from(distractors)].sort(() => Math.random() - 0.5);
+            return { num, correct, options };
+        }
+
+        function startQuestion(pIdx) {
+            const p = players[pIdx];
+            if (p.timer) clearInterval(p.timer);
+
+            if (p.currentIdx >= TOTAL_QUESTIONS) {
+                p.finished = true;
+                showFinish(pIdx);
+                checkEnd();
+                return;
+            }
+
+            p.currentIdx++;
+            p.timeLeft = TIME_LIMIT;
+            updateTimer(pIdx);
+
+            const q = generateQuestion();
+            document.getElementById(`prog-${pIdx}`).innerText = `${p.currentIdx} / ${TOTAL_QUESTIONS}`;
+            document.getElementById(`target-${pIdx}`).innerText = q.num;
+            
+            const optsContainer = document.getElementById(`opts-${pIdx}`);
+            optsContainer.innerHTML = '';
+            
+            q.options.forEach(opt => {
+                const btn = document.createElement('div');
+                btn.className = 'option-btn shadow-sm';
+                btn.innerText = opt;
+                btn.onclick = () => {
+                    if (opt === q.correct) p.score++;
+                    startQuestion(pIdx);
+                };
+                optsContainer.appendChild(btn);
+            });
+
+            p.timer = setInterval(() => {
+                p.timeLeft--;
+                updateTimer(pIdx);
+                if (p.timeLeft <= 0) {
+                    clearInterval(p.timer);
+                    startQuestion(pIdx);
+                }
+            }, 1000);
+        }
+
+        function updateTimer(pIdx) {
+            const bar = document.getElementById(`time-${pIdx}`);
+            if (bar) {
+                const width = (players[pIdx].timeLeft / TIME_LIMIT) * 100;
+                bar.style.width = width + '%';
+            }
+        }
+
+        function showFinish(pIdx) {
+            const col = document.getElementById(`col-${pIdx}`);
+            col.innerHTML = `
+                <div class="flex flex-col items-center justify-center h-full space-y-4 opacity-50">
+                    <div class="text-6xl">🏆</div>
+                    <div class="text-2xl font-bold game-font">已完成</div>
+                    <div class="text-sm">等待其他人...</div>
+                </div>
+            `;
+        }
+
+        function checkEnd() {
+            if (players.every(p => p.finished)) {
+                setTimeout(showFinal, 1000);
+            }
+        }
+
+        function showFinal() {
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+            
+            const container = document.getElementById('final-results');
+            container.innerHTML = '';
+
+            // 按分数降序排列
+            const sorted = [...players].sort((a, b) => b.score - a.score);
+
+            sorted.forEach((p, idx) => {
+                const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : '👏';
+                container.innerHTML += `
+                    <div class="flex justify-between items-center p-4 bg-white rounded-2xl shadow-sm border-2">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-2xl">${medal}</span>
+                            <span class="font-bold text-lg text-gray-700">${p.name}</span>
+                        </div>
+                        <div class="text-xl font-black text-indigo-600">${p.score} 分</div>
+                    </div>
+                `;
+            });
+        }
+    </script>
+</body>
+</html>
