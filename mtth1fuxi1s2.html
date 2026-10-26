@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>一年级数学趣味大闯关 - 20题完整版</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#fff5f5',
+                            100: '#fed7d7',
+                            400: '#f6ad55',
+                            500: '#ed8936',
+                            600: '#dd6b20',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Noto Sans SC"', 'sans-serif'],
+                        play: ['Fredoka', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(2deg); }
+        }
+        @keyframes pop-in {
+            0% { transform: scale(0.85); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-float { animation: float 4s ease-in-out infinite; }
+        .animate-pop { animation: pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .math-item {
+            transition: all 0.2s ease;
+        }
+        .math-item:hover {
+            transform: scale(1.15) rotate(5deg);
+        }
+        .scratchpad-active {
+            cursor: crosshair;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-sky-100 via-indigo-50 to-pink-100 min-h-screen text-slate-800 font-sans flex flex-col justify-between selection:bg-pink-200">
+
+    <!-- Navigation Header -->
+    <header class="bg-white/80 backdrop-blur-md border-b border-white/60 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-400 to-orange-500 flex items-center justify-center text-white text-xl font-bold shadow-md shadow-orange-200 animate-float">
+                    🧮
+                </div>
+                <div>
+                    <h1 class="text-lg md:text-xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
+                        一年级数学趣味大闯关
+                    </h1>
+                    <p class="text-xs text-slate-500 font-medium">原试卷题型重现 + 8题全新进阶（共20题）</p>
+                </div>
+            </div>
+
+            <!-- Header Controls -->
+            <div class="flex items-center gap-2">
+                <button id="soundToggleBtn" onclick="toggleSound()" class="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition flex items-center gap-1.5 text-xs font-bold">
+                    <i id="soundIcon" class="fa-solid fa-volume-high text-amber-500 text-sm"></i>
+                    <span class="hidden sm:inline">音效开</span>
+                </button>
+                <button onclick="toggleMapModal()" class="p-2.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-600 transition flex items-center gap-1.5 text-xs font-bold">
+                    <i class="fa-solid fa-map text-indigo-500"></i>
+                    <span>关卡地图 (<span id="currentLevelNav">1</span>/20)</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-4xl mx-auto w-full px-4 py-6 flex-1 flex flex-col justify-center">
+
+        <!-- Quiz Screen -->
+        <div id="quizScreen" class="space-y-5">
+
+            <!-- Progress Bar & Stats Bar -->
+            <div class="bg-white/90 backdrop-blur-md rounded-2xl p-4 shadow-sm border border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <!-- Progress Line -->
+                <div class="w-full sm:w-2/3">
+                    <div class="flex justify-between items-center text-xs font-bold text-slate-500 mb-1.5">
+                        <span class="flex items-center gap-1 text-indigo-600">
+                            <i class="fa-solid fa-flag-checkered"></i> 闯关进度
+                        </span>
+                        <span id="progressPercent" class="font-play text-indigo-600 font-bold">5%</span>
+                    </div>
+                    <div class="w-full h-3.5 bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-200/60">
+                        <div id="progressBar" class="h-full bg-gradient-to-r from-amber-400 via-pink-500 to-indigo-500 rounded-full transition-all duration-500 ease-out" style="width: 5%"></div>
+                    </div>
+                </div>
+
+                <!-- Stats Badges -->
+                <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+                    <div class="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 border border-amber-200/80 rounded-xl text-amber-700 font-bold text-xs">
+                        <i class="fa-solid fa-star text-amber-400 text-sm"></i>
+                        <span>得分: <span id="scoreDisplay" class="font-play text-sm text-amber-600">0</span></span>
+                    </div>
+                    <div class="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-200/80 rounded-xl text-emerald-700 font-bold text-xs">
+                        <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
+                        <span>答对: <span id="correctCount" class="font-play text-sm text-emerald-600">0</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Question Card -->
+            <div class="bg-white rounded-3xl p-6 md:p-8 shadow-xl shadow-indigo-100/50 border border-indigo-50 relative overflow-hidden">
+                <!-- Decorative BG Circle -->
+                <div class="absolute -top-12 -right-12 w-40 h-40 bg-gradient-to-br from-pink-100 to-purple-100 rounded-full blur-2xl opacity-60 pointer-events-none"></div>
+
+                <!-- Category & Audio Toolbar -->
+                <div class="flex items-center justify-between mb-4">
+                    <span id="questionTag" class="px-3.5 py-1.5 rounded-full bg-indigo-50 text-indigo-600 font-bold text-xs tracking-wide border border-indigo-100/80">
+                        第一关：分数应用
+                    </span>
+                    
+                    <div class="flex items-center gap-2">
+                        <!-- Read Aloud Speech Button -->
+                        <button onclick="readQuestionAloud()" class="p-2 px-3 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-600 transition text-xs font-bold flex items-center gap-1.5">
+                            <i class="fa-solid fa-volume-low text-orange-500"></i>
+                            <span>读题</span>
+                        </button>
+                        <!-- Scratchpad Toggle Button -->
+                        <button onclick="toggleScratchpad()" class="p-2 px-3 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-600 transition text-xs font-bold flex items-center gap-1.5">
+                            <i class="fa-solid fa-pen-ruler text-purple-500"></i>
+                            <span class="hidden xs:inline">草稿板</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Question Text -->
+                <div class="mb-6">
+                    <h2 id="questionText" class="text-lg md:text-2xl font-bold text-slate-800 leading-relaxed">
+                        加载中...
+                    </h2>
+                </div>
+
+                <!-- Visual Graphic / Chart Container -->
+                <div class="mb-6 p-4 bg-slate-50/90 rounded-2xl border border-slate-100 flex flex-col items-center justify-center min-h-[120px]">
+                    <div id="visualDisplayArea" class="w-full flex flex-col items-center justify-center">
+                        <!-- Dynamic Visual SVG / HTML Diagram Rendered Here -->
+                    </div>
+                </div>
+
+                <!-- Answer Options Grid -->
+                <div id="optionsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-6">
+                    <!-- Option Buttons Rendered via JavaScript -->
+                </div>
+
+                <!-- Feedback & Explanation Panel -->
+                <div id="feedbackPanel" class="hidden rounded-2xl p-4 md:p-5 border animate-pop">
+                    <div class="flex items-start gap-3">
+                        <div id="feedbackIcon" class="w-10 h-10 rounded-full flex items-center justify-center text-xl shrink-0"></div>
+                        <div class="flex-1">
+                            <h4 id="feedbackTitle" class="font-bold text-base mb-1"></h4>
+                            <p id="feedbackExplanation" class="text-sm leading-relaxed mb-3 text-slate-700"></p>
+                            
+                            <!-- Next Question Button -->
+                            <div class="flex justify-end">
+                                <button id="nextBtn" onclick="nextQuestion()" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-sm shadow-md shadow-orange-200 transition transform hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-2">
+                                    <span>下一题</span>
+                                    <i class="fa-solid fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Number Line Tool ( Collapsible ) -->
+            <div class="bg-white/80 backdrop-blur-md rounded-2xl p-4 border border-white/80 shadow-sm">
+                <button onclick="toggleNumberLine()" class="w-full flex items-center justify-between text-slate-700 text-xs font-bold">
+                    <span class="flex items-center gap-2">
+                        <i class="fa-solid fa-ruler-horizontal text-indigo-500 text-sm"></i>
+                        数轴计算小帮手 (0 - 20)
+                    </span>
+                    <i id="numberLineChevron" class="fa-solid fa-chevron-down text-slate-400 transition-transform"></i>
+                </button>
+                <div id="numberLineContent" class="hidden mt-3 pt-3 border-t border-slate-100 overflow-x-auto pb-2">
+                    <div class="flex items-center justify-between min-w-[500px] px-2 py-2 bg-indigo-50/50 rounded-xl">
+                        <div id="numberLineTicks" class="flex w-full justify-between items-end h-12 relative px-2">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Quiz Complete / Results Screen (Hidden by default) -->
+        <div id="resultScreen" class="hidden bg-white rounded-3xl p-6 md:p-10 shadow-xl border border-indigo-50 text-center max-w-2xl mx-auto space-y-6 animate-pop">
+            <div class="inline-block p-4 rounded-full bg-amber-50 text-amber-500 text-5xl mb-2 animate-bounce">
+                🏆
+            </div>
+            
+            <div>
+                <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800 mb-2">大关卡顺利通关！</h2>
+                <p class="text-sm text-slate-500">恭喜你完成了全部 20 道一年级应用题的考验！</p>
+            </div>
+
+            <!-- Score Cards -->
+            <div class="grid grid-cols-3 gap-3 max-w-md mx-auto">
+                <div class="p-3 bg-amber-50 border border-amber-100 rounded-2xl">
+                    <div class="text-xs text-amber-700 font-bold">最终得分</div>
+                    <div id="finalScore" class="text-2xl font-play font-bold text-amber-600 mt-1">100</div>
+                </div>
+                <div class="p-3 bg-emerald-50 border border-emerald-100 rounded-2xl">
+                    <div class="text-xs text-emerald-700 font-bold">正确率</div>
+                    <div id="accuracyRate" class="text-2xl font-play font-bold text-emerald-600 mt-1">100%</div>
+                </div>
+                <div class="p-3 bg-indigo-50 border border-indigo-100 rounded-2xl">
+                    <div class="text-xs text-indigo-700 font-bold">获得勋章</div>
+                    <div id="medalDisplay" class="text-2xl mt-1">🥇</div>
+                </div>
+            </div>
+
+            <!-- Evaluative Badge -->
+            <div id="evaluationBadge" class="p-4 bg-gradient-to-r from-orange-50 to-pink-50 rounded-2xl border border-orange-100 text-slate-700 text-sm font-medium">
+                🌟 小数学家！你的解题思维非常敏捷！
+            </div>
+
+            <!-- Restart / Action Buttons -->
+            <div class="flex flex-col sm:flex-row justify-center gap-3 pt-4">
+                <button onclick="restartQuiz()" class="px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-sm shadow-md shadow-orange-200 transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>重新大闯关</span>
+                </button>
+                <button onclick="toggleMapModal()" class="px-6 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs font-bold transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span>查看全部20题解答</span>
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Scratchpad Floating Canvas Modal -->
+    <div id="scratchpadModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden flex flex-col h-[80vh] max-h-[600px]">
+            <div class="p-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                <span class="font-bold text-slate-700 text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-pen-nib text-purple-500"></i> 小白板草稿纸
+                </span>
+                <div class="flex items-center gap-2">
+                    <button onclick="clearCanvas()" class="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-600 text-xs font-bold hover:bg-rose-100 transition">
+                        <i class="fa-solid fa-trash-can"></i> 清空
+                    </button>
+                    <button onclick="toggleScratchpad()" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 transition">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="flex-1 bg-amber-50/30 relative overflow-hidden scratchpad-active">
+                <canvas id="scratchCanvas" class="w-full h-full block"></canvas>
+            </div>
+            <div class="p-3 bg-white border-t border-slate-100 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <button onclick="setPenColor('#ef4444')" class="w-6 h-6 rounded-full bg-red-500 border-2 border-white ring-2 ring-slate-200"></button>
+                    <button onclick="setPenColor('#3b82f6')" class="w-6 h-6 rounded-full bg-blue-500 border-2 border-white ring-2 ring-slate-200"></button>
+                    <button onclick="setPenColor('#10b981')" class="w-6 h-6 rounded-full bg-emerald-500 border-2 border-white ring-2 ring-slate-200"></button>
+                    <button onclick="setPenColor('#1e293b')" class="w-6 h-6 rounded-full bg-slate-800 border-2 border-white ring-2 ring-slate-200"></button>
+                </div>
+                <span class="text-xs text-slate-400">可以用手指或鼠标直接演算画画</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Level Map Modal -->
+    <div id="mapModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden">
+            <div class="p-4 md:p-5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-map-location-dot text-xl"></i>
+                    <h3 class="font-bold text-lg">全 20 题关卡导航地图</h3>
+                </div>
+                <button onclick="toggleMapModal()" class="text-white/80 hover:text-white text-xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto flex-1">
+                <div id="mapGrid" class="grid grid-cols-4 sm:grid-cols-5 gap-3">
+                    <!-- Populated dynamically with 20 question cards -->
+                </div>
+            </div>
+
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+                <button onclick="toggleMapModal()" class="px-5 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs">
+                    关闭地图
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="py-4 text-center text-xs text-slate-400">
+        <p>一年级数学应用题复习大闯关 · 贴合马来西亚SJK(C)与最新课纲练习</p>
+    </footer>
+
+    <script>
+        const questions = [
+            // --- 原图 12 题核心考点 (1-12) ---
+            {
+                id: 1,
+                category: "原题重现：分数计算",
+                question: "丽丽有一个蛋糕，她吃了四分之二，弟弟吃了四分之一，还剩下几分之几的蛋糕？",
+                type: "fraction_cake",
+                options: ["四分之一", "四分之二", "四分之三", "全部吃完"],
+                correct: 0,
+                explanation: "蛋糕切成 4 份：丽丽吃了 2 份，弟弟吃了 1 份，一共吃了 3 份。剩下 4 - 3 = 1 份，即四分之一。"
+            },
+            {
+                id: 2,
+                category: "原题重现：零用钱总额",
+                question: "妹妹有 4 枚硬币：50 sen、20 sen、20 sen 和 10 sen。妹妹一共有多少零用钱？",
+                type: "money_sum",
+                options: ["90 sen", "RM 1 (100 sen)", "RM 2", "80 sen"],
+                correct: 1,
+                explanation: "把硬币加起来：50 sen + 20 sen + 20 sen + 10 sen = 100 sen = RM 1。"
+            },
+            {
+                id: 3,
+                category: "原题重现：钱币买东西与补缺",
+                question: "妹妹一共有 RM 1 零用钱，她想买一个 RM 2 的文具，她还缺多少钱？",
+                type: "money_diff",
+                options: ["RM 1", "RM 2", "50 sen", "RM 3"],
+                correct: 0,
+                explanation: "用文具的价格减去现有的钱：RM 2 - RM 1 = RM 1，所以她还缺 RM 1。"
+            },
+            {
+                id: 4,
+                category: "原题重现：立体图形名称",
+                question: "看下图中的物体（类似于水杯、水管的立体），写出这个立体的名称。",
+                type: "cylinder_name",
+                options: ["长方体", "正方体", "圆柱体", "圆锥体"],
+                correct: 2,
+                explanation: "上下两个底面是圆形的直立柱体，叫做【圆柱体】。"
+            },
+            {
+                id: 5,
+                category: "原题重现：立体特征数量",
+                question: "请问一个【圆柱体】分别有几个平面、几个曲面及几个顶点？",
+                type: "cylinder_props",
+                options: ["2个平面、1个曲面、0个顶点", "1个平面、2个曲面、1个顶点", "6个平面、0个曲面、8个顶点", "2个平面、0个曲面、2个顶点"],
+                correct: 0,
+                explanation: "圆柱体有上下 2 个平平的圆面（平面），侧面有 1 个弯曲的曲面，且没有尖尖的顶点（0个顶点）。"
+            },
+            {
+                id: 6,
+                category: "原题重现：加法应用题",
+                question: "静静把 7 杯一样多的橙汁拿给客人喝，桌上还有 2 杯。静静一共准备了多少杯橙汁？",
+                type: "juice_add",
+                options: ["8 杯", "9 杯", "10 杯", "7 杯"],
+                correct: 1,
+                explanation: "用拿给客人的杯数加上桌上剩下的杯数：7 + 2 = 9 杯。"
+            },
+            {
+                id: 7,
+                category: "原题重现：象形统计图 (a)",
+                question: "观察下面的三文治统计图（注意：1个三角形 △ 代表 2 个三文治）。请问哪一班吃了 6 片三文治？",
+                type: "pictogram_find",
+                options: ["1A 班", "1B 班", "1C 班", "1D 班"],
+                correct: 2,
+                explanation: "1个△代表2片，6片三文治需要 6 ÷ 2 = 3 个△。图表中 1C 班正好有 3 个△，所以是 1C 班。"
+            },
+            {
+                id: 8,
+                category: "原题重现：象形统计图 (b)",
+                question: "承上题统计图，星期五下课时，1A 至 1D 班的学生一共吃了多少片三文治？",
+                type: "pictogram_sum",
+                options: ["14 片", "28 片", "24 片", "20 片"],
+                correct: 1,
+                explanation: "计算所有△的总数：1A(2个) + 1B(4个) + 1C(3个) + 1D(5个) = 14个△。因为每个△代表2片，所以 14 × 2 = 28 片。"
+            },
+            {
+                id: 9,
+                category: "原题重现：认识钟表时刻",
+                question: "小明看墙上的钟面，短针（时针）指向 3，长针（分针）指着 12。请问现在是几时？",
+                type: "clock_time",
+                options: ["12 时", "3 时", "3 时半", "6 时"],
+                correct: 1,
+                explanation: "分针指着 12，时针指着几就是几时。时针指向 3，所以是 3 时。"
+            },
+            {
+                id: 10,
+                category: "原题重现：天平重量比较",
+                question: "天平左边放了 3 个苹果，右边放了 1 个西瓜，天平向右边下沉。哪一种水果比较重？",
+                type: "balance_scale",
+                options: ["苹果", "西瓜", "一样重", "无法比较"],
+                correct: 1,
+                explanation: "天平往下沉的那一边说明物体更重，所以 1 个西瓜比 3 个苹果更重。"
+            },
+            {
+                id: 11,
+                category: "原题重现：三数连加应用",
+                question: "花园里开着 5 朵红花、4 朵黄花和 3 朵紫花，花园里一共有多少朵花？",
+                type: "three_add",
+                options: ["11 朵", "12 朵", "13 朵", "10 朵"],
+                correct: 1,
+                explanation: "把三种颜色的花加起来：5 + 4 + 3 = 12 朵。"
+            },
+            {
+                id: 12,
+                category: "原题重现：排队基数问题",
+                question: "小东排队买冰淇淋，他排在第 3 个，他后面还有 5 个人，这一队一共有多少人？",
+                type: "queue_line",
+                options: ["8 人", "7 人", "9 人", "10 人"],
+                correct: 0,
+                explanation: "小东包含前面共 3 人，再加上他身后的 5 人：3 + 5 = 8 人。"
+            },
+
+            // --- 新增 8 题进阶题 (13-20) ---
+            {
+                id: 13,
+                category: "新增关卡：退位减法",
+                question: "小红的包包里原本有 15 块饼干，她分给好朋友 7 块后，自己还剩多少块饼干？",
+                type: "sub_15_7",
+                options: ["7 块", "8 块", "9 块", "6 块"],
+                correct: 1,
+                explanation: "从原本的 15 块中减去分掉的 7 块：15 - 7 = 8 块。"
+            },
+            {
+                id: 14,
+                category: "新增关卡：钱币找零钱",
+                question: "小华拿着一张 RM 5 纸币买了一本 RM 3 的绘本，店员应该找回多少钱给小华？",
+                type: "money_change",
+                options: ["RM 1", "RM 2", "RM 3", "RM 8"],
+                correct: 1,
+                explanation: "付出的钱减去商品的费用：RM 5 - RM 3 = RM 2。"
+            },
+            {
+                id: 15,
+                category: "新增关卡：认识二分之一",
+                question: "看下面的圆形：它被平均分成了 2 份，其中 1 份涂上了深色。涂色部分占这个圆形的几分之几？",
+                type: "fraction_half",
+                options: ["二分之一", "四分之一", "三分之一", "全部"],
+                correct: 0,
+                explanation: "平均分成 2 份，取其中的 1 份，写作 1/2，读作【二分之一】。"
+            },
+            {
+                id: 16,
+                category: "新增关卡：双向排队逻辑",
+                question: "小朋友们排成一队做操，小美从前面数排在第 4，从后面数排在第 5，这一队一共有几个人？",
+                type: "double_queue",
+                options: ["9 人", "8 人", "10 人", "7 人"],
+                correct: 1,
+                explanation: "前面 4 人 + 后面 5 人，因为小美被重复数了两次，所以要减去 1：4 + 5 - 1 = 8 人。"
+            },
+            {
+                id: 17,
+                category: "新增关卡：数列找规律",
+                question: "请你认真观察数字的排列规律：2, 4, 6, 8, (  )。括号里应该填几？",
+                type: "number_pattern",
+                options: ["9", "10", "12", "11"],
+                correct: 1,
+                explanation: "这是按照“每次加 2”（双数）的规律排列的：8 + 2 = 10。"
+            },
+            {
+                id: 18,
+                category: "新增关卡：连续减法应用",
+                question: "妈妈买了 18 个鸡蛋，早上做早餐用了 4 个，晚上做蛋糕又用了 6 个，还剩下几个鸡蛋？",
+                type: "double_sub",
+                options: ["8 个", "10 个", "12 个", "6 个"],
+                correct: 0,
+                explanation: "用总数连续减去用掉的数量：18 - 4 - 6 = 8 个（或者 18 - 10 = 8 个）。"
+            },
+            {
+                id: 19,
+                category: "新增关卡：立体图形识别",
+                question: "埃及金字塔的底部是四方形，四个侧面是三角形，顶端尖尖的。它属于什么立体图形？",
+                type: "pyramid_shape",
+                options: ["棱锥体", "圆锥体", "棱柱体", "正方体"],
+                correct: 0,
+                explanation: "底部是多边形、侧面是三角形且聚于一个顶点的立体叫做【棱锥体】。"
+            },
+            {
+                id: 20,
+                category: "新增关卡：连加统计应用",
+                question: "小猫去钓鱼：星期一钓了 4 条鱼，星期二钓了 6 条鱼，星期三钓了 5 条鱼。小猫三天一共钓了多少条鱼？",
+                type: "cat_fish_add",
+                options: ["14 条", "15 条", "16 条", "13 条"],
+                correct: 1,
+                explanation: "把三天钓的鱼加起来：4 + 6 + 5 = 15 条。"
+            }
+        ];
+
+        let currentIndex = 0;
+        let score = 0;
+        let correctAnswersCount = 0;
+        let userAnswers = new Array(questions.length).fill(null);
+        let soundEnabled = true;
+
+        // Web Audio Synthesizer for SFX
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'correct') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                    osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.3); // A5
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.3);
+                } else if (type === 'wrong') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+                    osc.frequency.linearRampToValueAtTime(150, audioCtx.currentTime + 0.2);
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.2);
+                } else if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.05);
+                }
+            } catch (e) {
+                // Ignore audio context auto-start browser restrictions
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('soundIcon');
+            const btnText = document.getElementById('soundToggleBtn').querySelector('span');
+            if (soundEnabled) {
+                icon.className = "fa-solid fa-volume-high text-amber-500 text-sm";
+                btnText.innerText = "音效开";
+            } else {
+                icon.className = "fa-solid fa-volume-xmark text-slate-400 text-sm";
+                btnText.innerText = "音效关";
+            }
+        }
+
+        // Speech Synthesis API - Read Aloud Question Text
+        function readQuestionAloud() {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const q = questions[currentIndex];
+                const utterance = new SpeechSynthesisUtterance(q.question);
+                utterance.lang = 'zh-CN';
+                utterance.rate = 0.9; 
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function renderVisualDiagram(q) {
+            const area = document.getElementById('visualDisplayArea');
+            area.innerHTML = '';
+
+            switch (q.type) {
+                case "fraction_cake":
+                    // Cake with 4 slice grid (2 eaten by Lili, 1 by brother)
+                    area.innerHTML = `
+                        <div class="flex flex-col items-center gap-2">
+                            <div class="w-28 h-28 border-4 border-amber-600 bg-amber-100 rounded-2xl grid grid-cols-2 grid-rows-2 p-1 gap-1 shadow-inner">
+                                <div class="bg-amber-300 rounded-lg flex items-center justify-center text-xs font-bold text-amber-800">吃掉</div>
+                                <div class="bg-amber-300 rounded-lg flex items-center justify-center text-xs font-bold text-amber-800">吃掉</div>
+                                <div class="bg-amber-300 rounded-lg flex items-center justify-center text-xs font-bold text-amber-800">吃掉</div>
+                                <div class="bg-white rounded-lg border-2 border-dashed border-amber-400 flex items-center justify-center text-xs font-bold text-slate-600">剩下</div>
+                            </div>
+                            <span class="text-xs text-slate-500 font-medium">🎂 4等份蛋糕（3份已吃，剩1份）</span>
+                        </div>
+                    `;
+                    break;
+
+                case "money_sum":
+                case "money_diff":
+                    // Malaysian Coin visuals (50s, 20s, 20s, 10s)
+                    area.innerHTML = `
+                        <div class="flex items-center justify-center gap-3 flex-wrap">
+                            <div class="w-12 h-12 rounded-full bg-gradient-to-b from-amber-200 to-amber-400 border-2 border-amber-500 shadow flex flex-col items-center justify-center text-amber-900 font-bold text-xs">
+                                <span>50</span><span class="text-[9px]">SEN</span>
+                            </div>
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-b from-slate-200 to-slate-300 border-2 border-slate-400 shadow flex flex-col items-center justify-center text-slate-700 font-bold text-xs">
+                                <span>20</span><span class="text-[8px]">SEN</span>
+                            </div>
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-b from-slate-200 to-slate-300 border-2 border-slate-400 shadow flex flex-col items-center justify-center text-slate-700 font-bold text-xs">
+                                <span>20</span><span class="text-[8px]">SEN</span>
+                            </div>
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-b from-slate-200 to-slate-300 border-2 border-slate-400 shadow flex flex-col items-center justify-center text-slate-700 font-bold text-[10px]">
+                                <span>10</span><span class="text-[7px]">SEN</span>
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case "cylinder_name":
+                case "cylinder_props":
+                    // SVG 3D Cylinder Diagram
+                    area.innerHTML = `
+                        <div class="flex items-center justify-center">
+                            <svg width="100" height="120" viewBox="0 0 100 120" class="drop-shadow-md">
+                                <ellipse cx="50" cy="25" rx="35" ry="15" fill="#3b82f6" opacity="0.8" stroke="#1d4ed8" stroke-width="3"/>
+                                <path d="M 15 25 L 15 95 A 35 15 0 0 0 85 95 L 85 25 Z" fill="#93c5fd" opacity="0.6" stroke="#1d4ed8" stroke-width="3"/>
+                                <ellipse cx="50" cy="95" rx="35" ry="15" fill="none" stroke="#1d4ed8" stroke-width="3" stroke-dasharray="4"/>
+                            </svg>
+                        </div>
+                    `;
+                    break;
+
+                case "juice_add":
+                    area.innerHTML = `
+                        <div class="flex flex-wrap items-center justify-center gap-2">
+                            <div class="p-2 bg-amber-50 rounded-xl border border-amber-200 flex gap-1">
+                                <span class="text-2xl">🍹</span><span class="text-2xl">🍹</span><span class="text-2xl">🍹</span><span class="text-2xl">🍹</span><span class="text-2xl">🍹</span><span class="text-2xl">🍹</span><span class="text-2xl">🍹</span>
+                            </div>
+                            <span class="text-lg font-bold text-amber-600">+</span>
+                            <div class="p-2 bg-orange-50 rounded-xl border border-orange-200 flex gap-1">
+                                <span class="text-2xl">🍹</span><span class="text-2xl">🍹</span>
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case "pictogram_find":
+                case "pictogram_sum":
+                    // Sandwich Pictogram Chart
+                    area.innerHTML = `
+                        <div class="w-full max-w-sm bg-white rounded-xl border border-slate-200 overflow-hidden text-xs">
+                            <div class="bg-indigo-50 p-2 font-bold text-center border-b text-indigo-700">一年级各班吃的三文治数量</div>
+                            <div class="divide-y divide-slate-100">
+                                <div class="p-1.5 flex items-center"><span class="w-12 font-bold text-slate-600">1A 班</span><div class="flex gap-1 text-amber-500 text-base">🔺🔺</div></div>
+                                <div class="p-1.5 flex items-center"><span class="w-12 font-bold text-slate-600">1B 班</span><div class="flex gap-1 text-amber-500 text-base">🔺🔺🔺🔺</div></div>
+                                <div class="p-1.5 flex items-center bg-amber-50/50"><span class="w-12 font-bold text-amber-700">1C 班</span><div class="flex gap-1 text-amber-500 text-base">🔺🔺🔺</div></div>
+                                <div class="p-1.5 flex items-center"><span class="w-12 font-bold text-slate-600">1D 班</span><div class="flex gap-1 text-amber-500 text-base">🔺🔺🔺🔺🔺</div></div>
+                            </div>
+                            <div class="bg-slate-50 p-1.5 text-center text-[11px] text-slate-500 border-t">
+                                💡 提示：每个 <span class="text-amber-500 font-bold">🔺</span> 代表 <b>2 个</b>三文治
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case "clock_time":
+                    // SVG Analog Clock pointing to 3:00
+                    area.innerHTML = `
+                        <div class="flex items-center justify-center">
+                            <svg width="100" height="100" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="45" fill="#f8fafc" stroke="#64748b" stroke-width="4"/>
+                                <circle cx="50" cy="50" r="3" fill="#1e293b"/>
+                                <!-- 12, 3, 6, 9 markers -->
+                                <text x="50" y="20" text-anchor="middle" font-size="10" font-weight="bold" fill="#334155">12</text>
+                                <text x="82" y="53" text-anchor="middle" font-size="10" font-weight="bold" fill="#334155">3</text>
+                                <text x="50" y="87" text-anchor="middle" font-size="10" font-weight="bold" fill="#334155">6</text>
+                                <text x="18" y="53" text-anchor="middle" font-size="10" font-weight="bold" fill="#334155">9</text>
+                                <!-- Minute Hand to 12 -->
+                                <line x1="50" y1="50" x2="50" y2="22" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+                                <!-- Hour Hand to 3 -->
+                                <line x1="50" y1="50" x2="72" y2="50" stroke="#1e293b" stroke-width="4" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                    `;
+                    break;
+
+                case "balance_scale":
+                    area.innerHTML = `
+                        <div class="flex items-center justify-center gap-4 py-2">
+                            <div class="flex items-center gap-1 bg-amber-50 p-2 rounded-xl border border-amber-200">
+                                <span class="text-2xl">🍎</span><span class="text-2xl">🍎</span><span class="text-2xl">🍎</span>
+                                <span class="text-xs font-bold text-amber-700 ml-1">3个苹果 (较高)</span>
+                            </div>
+                            <span class="text-xl">⚖️</span>
+                            <div class="flex items-center gap-1 bg-emerald-50 p-2 rounded-xl border border-emerald-200">
+                                <span class="text-3xl">🍉</span>
+                                <span class="text-xs font-bold text-emerald-700 ml-1">1个西瓜 (沉下)</span>
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case "fraction_half":
+                    area.innerHTML = `
+                        <div class="flex items-center justify-center py-2">
+                            <svg width="90" height="90" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="42" fill="#e2e8f0" stroke="#475569" stroke-width="3"/>
+                                <path d="M 50 8 A 42 42 0 0 1 50 92 Z" fill="#3b82f6"/>
+                                <line x1="50" y1="8" x2="50" y2="92" stroke="#475569" stroke-width="3"/>
+                            </svg>
+                        </div>
+                    `;
+                    break;
+
+                case "pyramid_shape":
+                    area.innerHTML = `
+                        <div class="flex items-center justify-center">
+                            <svg width="100" height="100" viewBox="0 0 100 100">
+                                <polygon points="50,15 15,80 85,80" fill="#fde047" stroke="#ca8a04" stroke-width="3"/>
+                                <polygon points="50,15 85,80 65,88" fill="#eab308" stroke="#ca8a04" stroke-width="2"/>
+                            </svg>
+                        </div>
+                    `;
+                    break;
+
+                default:
+                    // Generic Emoji item list
+                    area.innerHTML = `
+                        <div class="flex items-center justify-center gap-2 flex-wrap py-2">
+                            <span class="text-3xl">🧮</span>
+                            <span class="text-xs font-bold text-slate-500">认真看题，算一算吧！</span>
+                        </div>
+                    `;
+                    break;
+            }
+        }
+
+        function loadQuestion() {
+            const q = questions[currentIndex];
+            
+            // Header / Nav updates
+            document.getElementById('currentLevelNav').innerText = currentIndex + 1;
+            document.getElementById('questionTag').innerText = `第 ${currentIndex + 1} 关 · ${q.category}`;
+            document.getElementById('questionText').innerText = `${currentIndex + 1}. ${q.question}`;
+
+            // Progress Bar
+            const percent = Math.round(((currentIndex + 1) / questions.length) * 100);
+            document.getElementById('progressBar').style.width = `${percent}%`;
+            document.getElementById('progressPercent').innerText = `${percent}%`;
+
+            // Diagram
+            renderVisualDiagram(q);
+
+            // Hide previous feedback
+            const feedbackPanel = document.getElementById('feedbackPanel');
+            feedbackPanel.classList.add('hidden');
+
+            // Render Answer Grid
+            const grid = document.getElementById('optionsGrid');
+            grid.innerHTML = '';
+
+            const isAnswered = userAnswers[currentIndex] !== null;
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = `p-4 rounded-2xl border-2 text-left font-bold text-base transition duration-200 flex items-center justify-between shadow-sm transform hover:-translate-y-0.5 active:translate-y-0 ${
+                    isAnswered 
+                        ? (idx === q.correct 
+                            ? 'bg-emerald-50 border-emerald-400 text-emerald-800' 
+                            : (userAnswers[currentIndex] === idx 
+                                ? 'bg-rose-50 border-rose-400 text-rose-800' 
+                                : 'bg-slate-50 border-slate-200 text-slate-400 opacity-60'))
+                        : 'bg-white hover:bg-indigo-50/50 border-slate-200 hover:border-indigo-300 text-slate-700'
+                }`;
+
+                btn.innerHTML = `
+                    <span class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-xs text-slate-500 font-play">
+                            ${String.fromCharCode(65 + idx)}
+                        </span>
+                        <span>${opt}</span>
+                    </span>
+                    <i class="fa-solid fa-circle-check text-indigo-500 opacity-0 group-hover:opacity-100 transition"></i>
+                `;
+
+                if (!isAnswered) {
+                    btn.onclick = () => selectAnswer(idx);
+                }
+
+                grid.appendChild(btn);
+            });
+
+            // If already answered, show feedback panel
+            if (isAnswered) {
+                showFeedback(userAnswers[currentIndex] === q.correct, q);
+            }
+
+            renderNumberLine();
+        }
+
+        function selectAnswer(index) {
+            if (userAnswers[currentIndex] !== null) return;
+
+            userAnswers[currentIndex] = index;
+            const q = questions[currentIndex];
+            const isCorrect = index === q.correct;
+
+            if (isCorrect) {
+                score += 5; // 5 pts each, 20 total = 100
+                correctAnswersCount++;
+                playSound('correct');
+            } else {
+                playSound('wrong');
+            }
+
+            document.getElementById('scoreDisplay').innerText = score;
+            document.getElementById('correctCount').innerText = correctAnswersCount;
+
+            loadQuestion();
+        }
+
+        function showFeedback(isCorrect, q) {
+            const panel = document.getElementById('feedbackPanel');
+            const icon = document.getElementById('feedbackIcon');
+            const title = document.getElementById('feedbackTitle');
+            const exp = document.getElementById('feedbackExplanation');
+            const nextBtn = document.getElementById('nextBtn');
+
+            panel.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-200', 'bg-rose-50', 'border-rose-200');
+
+            if (isCorrect) {
+                panel.classList.add('bg-emerald-50', 'border-emerald-200');
+                icon.className = "w-10 h-10 rounded-full flex items-center justify-center text-xl shrink-0 bg-emerald-100 text-emerald-600";
+                icon.innerHTML = `<i class="fa-solid fa-face-smile"></i>`;
+                title.className = "font-bold text-base mb-1 text-emerald-800";
+                title.innerText = "回答正确！太棒了！🎉";
+            } else {
+                panel.classList.add('bg-rose-50', 'border-rose-200');
+                icon.className = "w-10 h-10 rounded-full flex items-center justify-center text-xl shrink-0 bg-rose-100 text-rose-600";
+                icon.innerHTML = `<i class="fa-solid fa-face-frown"></i>`;
+                title.className = "font-bold text-base mb-1 text-rose-800";
+                title.innerText = `答错啦，正确答案是：${q.options[q.correct]}`;
+            }
+
+            exp.innerText = q.explanation;
+
+            if (currentIndex === questions.length - 1) {
+                nextBtn.innerHTML = `<span>查看成绩单</span> <i class="fa-solid fa-trophy"></i>`;
+            } else {
+                nextBtn.innerHTML = `<span>下一题</span> <i class="fa-solid fa-arrow-right"></i>`;
+            }
+        }
+
+        function nextQuestion() {
+            playSound('click');
+            if (currentIndex < questions.length - 1) {
+                currentIndex++;
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function renderNumberLine() {
+            const ticksContainer = document.getElementById('numberLineTicks');
+            ticksContainer.innerHTML = '';
+
+            for (let i = 0; i <= 20; i++) {
+                const tick = document.createElement('div');
+                tick.className = "flex flex-col items-center group cursor-pointer";
+                
+                tick.innerHTML = `
+                    <span class="text-[10px] font-play font-bold text-slate-500 group-hover:text-indigo-600">${i}</span>
+                    <div class="w-0.5 h-3 bg-slate-300 group-hover:bg-indigo-500 rounded-full my-1"></div>
+                `;
+                tick.onclick = () => playSound('click');
+                ticksContainer.appendChild(tick);
+            }
+        }
+
+        function toggleNumberLine() {
+            const content = document.getElementById('numberLineContent');
+            const chevron = document.getElementById('numberLineChevron');
+            content.classList.toggle('hidden');
+            chevron.classList.toggle('rotate-180');
+        }
+
+        let canvas, ctx, isDrawing = false, penColor = '#1e293b';
+
+        function toggleScratchpad() {
+            const modal = document.getElementById('scratchpadModal');
+            modal.classList.toggle('hidden');
+
+            if (!modal.classList.contains('hidden')) {
+                setTimeout(initCanvas, 50);
+            }
+        }
+
+        function initCanvas() {
+            canvas = document.getElementById('scratchCanvas');
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+
+            ctx = canvas.getContext('2d');
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = penColor;
+
+            canvas.onmousedown = startDrawing;
+            canvas.onmousemove = draw;
+            canvas.onmouseup = stopDrawing;
+
+            canvas.ontouchstart = (e) => {
+                const touch = e.touches[0];
+                const mouseEvent = new MouseEvent("mousedown", {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                });
+                canvas.dispatchEvent(mouseEvent);
+            };
+            canvas.ontouchmove = (e) => {
+                const touch = e.touches[0];
+                const mouseEvent = new MouseEvent("mousemove", {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                });
+                canvas.dispatchEvent(mouseEvent);
+            };
+            canvas.ontouchend = () => {
+                const mouseEvent = new MouseEvent("mouseup", {});
+                canvas.dispatchEvent(mouseEvent);
+            };
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            ctx.beginPath();
+            ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            const rect = canvas.getBoundingClientRect();
+            ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+            ctx.stroke();
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+        }
+
+        function setPenColor(color) {
+            penColor = color;
+            if (ctx) ctx.strokeStyle = penColor;
+        }
+
+        function clearCanvas() {
+            if (ctx && canvas) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+
+        function toggleMapModal() {
+            const modal = document.getElementById('mapModal');
+            modal.classList.toggle('hidden');
+
+            if (!modal.classList.contains('hidden')) {
+                renderMapGrid();
+            }
+        }
+
+        function renderMapGrid() {
+            const grid = document.getElementById('mapGrid');
+            grid.innerHTML = '';
+
+            questions.forEach((q, idx) => {
+                const card = document.createElement('button');
+                const isAnswered = userAnswers[idx] !== null;
+                const isCorrect = isAnswered && userAnswers[idx] === q.correct;
+
+                card.className = `p-3 rounded-2xl border text-center transition flex flex-col items-center justify-center gap-1 ${
+                    idx === currentIndex 
+                        ? 'bg-indigo-600 text-white border-indigo-700 shadow-md ring-2 ring-indigo-300' 
+                        : (isAnswered 
+                            ? (isCorrect ? 'bg-emerald-50 border-emerald-300 text-emerald-800' : 'bg-rose-50 border-rose-300 text-rose-800')
+                            : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100')
+                }`;
+
+                card.onclick = () => {
+                    currentIndex = idx;
+                    toggleMapModal();
+                    loadQuestion();
+                };
+
+                card.innerHTML = `
+                    <span class="text-xs font-play font-bold">第 ${idx + 1} 题</span>
+                    <span class="text-[10px] truncate max-w-full font-medium">
+                        ${isAnswered ? (isCorrect ? '✅ 对' : '❌ 错') : '未答'}
+                    </span>
+                `;
+
+                grid.appendChild(card);
+            });
+        }
+
+        function showResults() {
+            document.getElementById('quizScreen').classList.add('hidden');
+            const resultScreen = document.getElementById('resultScreen');
+            resultScreen.classList.remove('hidden');
+
+            const accuracy = Math.round((correctAnswersCount / questions.length) * 100);
+            document.getElementById('finalScore').innerText = score;
+            document.getElementById('accuracyRate').innerText = `${accuracy}%`;
+
+            const medal = document.getElementById('medalDisplay');
+            const evalBadge = document.getElementById('evaluationBadge');
+
+            if (accuracy === 100) {
+                medal.innerText = "🥇";
+                evalBadge.innerText = "🌟 太完美了！你答对了全部 20 道题目，获得了【数学小达人】满分荣誉勋章！";
+            } else if (accuracy >= 80) {
+                medal.innerText = "🥈";
+                evalBadge.innerText = "👏 表现非常出色！你掌握得很扎实，再接再厉冲刺 100 分！";
+            } else if (accuracy >= 60) {
+                medal.innerText = "🥉";
+                evalBadge.innerText = "💪 顺利过关！多复习做错的题目，下次一定能拿满分！";
+            } else {
+                medal.innerText = "🎖️";
+                evalBadge.innerText = "📚 没关系，继续加油！点击重新闯关多练习几次吧！";
+            }
+        }
+
+        function restartQuiz() {
+            currentIndex = 0;
+            score = 0;
+            correctAnswersCount = 0;
+            userAnswers = new Array(questions.length).fill(null);
+
+            document.getElementById('scoreDisplay').innerText = 0;
+            document.getElementById('correctCount').innerText = 0;
+
+            document.getElementById('resultScreen').classList.add('hidden');
+            document.getElementById('quizScreen').classList.remove('hidden');
+
+            loadQuestion();
+        }
+
+        window.onload = function() {
+            loadQuestion();
+        };
+    </script>
+</body>
+</html>
+```
+
+### 📋 题目清单（全 20 题预览）
+
+1. **原题重现**：丽丽吃了 $\frac{2}{4}$ 蛋糕，弟弟吃了 $\frac{1}{4}$，还剩几分之几？
+2. **原题重现**：50 sen、20 sen、20 sen、10 sen 硬币合共多少钱？（RM 1）
+3. **原题重现**：妹妹有 RM 1，想买 RM 2 的文具，还缺多少钱？（RM 1）
+4. **原题重现**：识别水杯形状的立体图形名称（圆柱体）
+5. **原题重现**：圆柱体的平面、曲面及顶点数量（2平面、1曲面、0顶点）
+6. **原题重现**：客人喝了 7 杯橙汁，桌上还剩 2 杯，共准备了几杯？（9杯）
+7. **原题重现**：三文治象形统计图（△=2个），哪一班吃了 6 片？（1C班）
+8. **原题重现**：三文治象形统计图，1A至1D班一共吃了多少片？（28片）
+9. **原题重现**：钟面上时针指着 3，分针指着 12，是几时？（3时）
+10. **原题重现**：天平左边 3 个苹果，右边 1 个西瓜向下沉，哪个重？（西瓜）
+11. **原题重现**：5朵红花、4朵黄花、3朵紫花，一共有多少朵花？（12朵）
+12. **原题重现**：小东排第 3 个，身后还有 5 个人，一共有多少人？（8人）
+13. **新增题型**：15 块饼干分给朋友 7 块，自己还剩多少块？（8块）
+14. **新增题型**：用 RM 5 买 RM 3 的绘本，找回多少钱？（RM 2）
+15. **新增题型**：圆形平均分成 2 份，涂色 1 份代表几分之几？（二分之一）
+16. **新增题型**：从前数排第 4，从后数排第 5，这一队共有几人？（8人）
+17. **新增题型**：数列找规律：2, 4, 6, 8, ( ? )（10）
+18. **新增题型**：18 个鸡蛋，做早餐用 4 个，做蛋糕用 6 个，还剩几个？（8个）
+19. **新增题型**：埃及金字塔侧面是三角形、顶端尖尖，属于什么立体？（棱锥体）
+20. **新增题型**：小猫三天分别钓了 4、6、5 条鱼，一共钓了多少条？（15条）
